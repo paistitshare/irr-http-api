@@ -1,0 +1,26 @@
+name: Merge all dependabot PRs
+
+on: [workflow_dispatch]
+
+jobs:
+  merge_dependabot_prs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install dependencies
+        run: npm i @octokit/rest @octokit/auth-app @actions/core
+
+      - name: Get Dependabot PR urls and trigger merge pipelines
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            REPOSITORY_SECRET: ${{ secrets.REPOSITORY_SECRET }}
+            APPROVER_APP_PRIVATE_KEY: ${{ secrets.APPROVER_APP_PRIVATE_KEY }}
+            APPROVER_APP_ID: ${{ vars.APPROVER_APP_ID }}
+            APPROVER_APP_INSTALLATION_ID: ${{ vars.APPROVER_APP_INSTALLATION_ID }}
+        run: node .github/actions/mergeDependabotPRS.mjs
