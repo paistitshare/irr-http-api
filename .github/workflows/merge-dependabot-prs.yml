@@ -1,0 +1,70 @@
+name: Merge all dependabot PRs
+
+on:
+  workflow_dispatch:
+    inputs:
+      pat:
+        description: "Personal Access Token (optional)"
+        required: false
+
+permissions: write-all
+
+jobs:
+  merge_dependabot_prs:
+    env:
+      GIT_COMMIT_AUTHOR_NAME: ${{ github.actor }}
+      ACTION_SECRET: ${{ secrets.ACTION_SECRET }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # - name: ACTION_SECRET
+      #   run: echo "$ACTION_SECRET" | head -c 4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version-file: ".nvmrc"
+
+      # - name: Approve PR using external action
+      #   uses: juliangruber/approve-pull-request-action@v1
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     number: 1
+
+      - name: Raise PR
+        id: raise-pr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: "new-branch"
+          base: develop
+          title: "New branch"
+          committer: ${{ env.GIT_COMMIT_AUTHOR_NAME }} <${{ env.GIT_COMMIT_AUTHOR_EMAIL }}">
+          author: ${{ env.GIT_COMMIT_AUTHOR_NAME }} <${{ env.GIT_COMMIT_AUTHOR_EMAIL }}">
+          body:
+            This is to show automatic PR creation
+          token: ${{ secrets.GITHUB_TOKEN }}
+          delete-branch: true
+
+      - name: Approve Pull Request
+        uses: juliangruber/approve-pull-request-action@v1
+        with:
+          github-token: ${{ secrets.ACTION_SECRET }}
+          number: ${{ steps.raise-pr.outputs.pull-request-number }}
+
+      - name: Approve Pull Request
+        uses: juliangruber/approve-pull-request-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.raise-pr.outputs.pull-request-number }}
+
+      # - name: Install octokit
+      #   run: npm i octokit @actions/core @actions/github
+
+      # - name: Get Dependabot PR urls and trigger merge pipelines
+      #   env:
+      #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #       GITHUB_ACTOR: ${{ github.actor }}
+      #       ACTION_SECRET: ${{ env.ACTION_SECRET }}
+      #       PAT: ${{ github.event.inputs.pat }}
+      #   run: node .github/actions/mergeDependabotPRS.mjs
