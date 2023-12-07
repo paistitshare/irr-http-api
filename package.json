@@ -20,7 +20,7 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
-    "mongoose": "^7.2.2",
+    "mongoose": "^8.0.3",
     "morgan": "^1.9.1"
   }
 }
